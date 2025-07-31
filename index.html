@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة درجات الطلاب للفصول الدراسية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            margin: 0;
+            padding: 10px;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #1a2a6c, #004e92);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 5px solid #ffcc00;
+            position: relative;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        header p {
+            margin: 8px 0 0;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .class-name {
+            background-color: rgba(255, 204, 0, 0.9);
+            color: #1a2a6c;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 8px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            background: linear-gradient(to right, #0d1b3a, #1a2a6c);
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #ffcc00;
+        }
+        
+        .nav-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .nav-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 90px;
+        }
+        
+        .nav-btn:hover {
+            background-color: #004e92;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(to right, #004e92, #0077b6);
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+        }
+        
+        .month-selector {
+            background-color: #f0f8ff;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+        
+        .month-btn {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 90px;
+        }
+        
+        .month-btn:hover {
+            background-color: #004e92;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .month-btn.active {
+            background: linear-gradient(to right, #004e92, #0077b6);
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+        }
+        
+        .content {
+            padding: 15px;
+            overflow-x: auto;
+        }
+        
+        .max-values {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #1a2a6c;
+            font-size: 0.9rem;
+        }
+        
+        .max-value-item {
+            background: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: linear-gradient(to bottom, #1a2a6c, #004e92);
+            color: white;
+            text-align: center;
+            padding: 14px; /* زيادة المساحة */
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            min-width: 100px; /* عرض أدنى للعناوين */
+        }
+        
+        td {
+            padding: 12px; /* زيادة المساحة */
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        input {
+            width: 90px; /* زيادة العرض */
+            height: 50px; /* زيادة الارتفاع */
+            padding: 10px; /* زيادة المساحة الداخلية */
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2rem; /* زيادة حجم الخط */
+            font-weight: bold; /* جعل الخط عريض */
+            transition: border-color 0.3s;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            color: #1a2a6c; /* لون أزرق داكن للأرقام */
+        }
+        
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+            background-color: #f0f8ff; /* لون خلفية عند التركيز */
+        }
+        
+        .total-cell {
+            background-color: #e8f4ff;
+            font-weight: bold;
+            color: #004085;
+            font-size: 1.2rem; /* زيادة حجم الخط */
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .copy-btn {
+            background: linear-gradient(to right, #28a745, #218838);
+            color: white;
+        }
+        
+        .export-btn {
+            background: linear-gradient(to right, #007bff, #0062cc);
+            color: white;
+        }
+        
+        .import-btn {
+            background: linear-gradient(to right, #ff9800, #f57c00);
+            color: white;
+        }
+        
+        .class-btn {
+            background: linear-gradient(to right, #9c27b0, #7b1fa2);
+            color: white;
+        }
+        
+        .clear-btn {
+            background: linear-gradient(to right, #dc3545, #c82333);
+            color: white;
+        }
+        
+        .export-all-btn {
+            background: linear-gradient(to right, #17a2b8, #138496);
+            color: white;
+        }
+        
+        .import-all-btn {
+            background: linear-gradient(to right, #6f42c1, #5a32a3);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .action-btn:active {
+            transform: translateY(1px);
+        }
+        
+        footer {
+            background-color: #1a2a6c;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+        
+        .student-name {
+            font-weight: bold;
+            text-align: right;
+            padding-right: 15px;
+            color: #1a2a6c;
+            min-width: 180px; /* عرض أدنى لأسماء الطلاب */
+        }
+        
+        .arabic-numbers {
+            font-family: Arial, sans-serif;
+            direction: ltr;
+            display: inline-block;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 12px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            font-size: 0.9rem;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 8% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            animation: modalopen 0.4s;
+        }
+        
+        @keyframes modalopen {
+            from {opacity: 0; transform: translateY(-50px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        
+        .close {
+            color: #aaa;
+            float: left;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        
+        .modal-title {
+            text-align: center;
+            color: #1a2a6c;
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+        
+        .modal-body {
+            padding: 15px 0;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        
+        .modal-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.confirm {
+            background: linear-gradient(to right, #28a745, #218838);
+            color: white;
+        }
+        
+        .modal-btn.cancel {
+            background: linear-gradient(to right, #6c757d, #5a6268);
+            color: white;
+        }
+        
+        /* التعديلات على لوحة المفاتيح */
+        .keypad {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #2c3e50;
+            padding: 15px;
+            box-shadow: 0 -6px 20px rgba(0,0,0,0.4);
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            z-index: 999;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+        
+        .keypad.active {
+            transform: translateY(0);
+        }
+        
+        .keypad-btn {
+            padding: 12px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: Arial, sans-serif;
+            color: #1a2a6c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 50px;
+        }
+        
+        .keypad-btn:active {
+            transform: scale(0.95);
+            background: #e0e0e0;
+        }
+        
+        .keypad-btn.backspace {
+            background: #ff6b6b;
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px;
+            min-height: 45px;
+        }
+        
+        .keypad-btn.close {
+            background: #4a6583;
+            color: white;
+            font-size: 1.1rem;
+            padding: 10px;
+            min-height: 45px;
+        }
+        
+        .keypad-btn.hidden {
+            visibility: hidden;
+        }
+        
+        .nav-direction {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            grid-column: span 6;
+            flex-wrap: wrap;
+        }
+        
+        .nav-direction-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: #e0e0e0;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            min-width: 100px;
+        }
+        
+        .nav-direction-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .section-title {
+            text-align: center;
+            color: #1a2a6c;
+            margin: 15px 0 8px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #1a2a6c;
+            font-size: 1.2rem;
+        }
+        
+        .auto-nav-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 26px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #1a2a6c;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .nav-status {
+            background-color: #e8f4ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 5px 0;
+            text-align: center;
+            border: 2px solid #007bff;
+            font-size: 0.9rem;
+        }
+        
+        .nav-status.active {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .nav-status.inactive {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .arabic-input {
+            font-family: Arial, sans-serif;
+            unicode-bidi: plaintext;
+            direction: ltr;
+        }
+        
+        .arabic-numbers-display {
+            font-family: Arial, sans-serif;
+            unicode-bidi: plaintext;
+            direction: ltr;
+            font-size: 1em;
+        }
+        
+        .keypad-btn .fa {
+            font-size: 1rem;
+        }
+        
+        input:not(.no-arabic) {
+            font-family: Arial, sans-serif;
+            unicode-bidi: plaintext;
+        }
+        
+        .delete-row-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+        
+        .delete-row-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 10px;
+            }
+            
+            header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .month-selector, .nav-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .month-btn, .nav-btn {
+                width: 100%;
+                max-width: 280px;
+            }
+            
+            th, td {
+                padding: 10px 8px; /* زيادة المساحة في الجوال */
+                font-size: 0.85rem;
+            }
+            
+            input {
+                width: 80px; /* تعديل العرض في الجوال */
+                height: 45px; /* تعديل الارتفاع في الجوال */
+                padding: 8px; /* تعديل المساحة الداخلية في الجوال */
+                font-size: 1.1rem; /* تعديل حجم الخط في الجوال */
+            }
+            
+            .action-btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+            
+            .keypad {
+                grid-template-columns: repeat(4, 1fr);
+                padding: 12px;
+            }
+            
+            .keypad-btn {
+                padding: 10px;
+                font-size: 1.5rem;
+                min-height: 45px;
+            }
+            
+            .keypad-btn.backspace,
+            .keypad-btn.close {
+                font-size: 1rem;
+                padding: 8px;
+                min-height: 40px;
+            }
+            
+            .nav-direction {
+                grid-column: span 4;
+                gap: 10px;
+            }
+            
+            .nav-direction-btn {
+                min-width: 90px;
+                padding: 6px 10px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i> <span id="notificationText">تم نسخ الجدول بنجاح!</span>
+    </div>
+    
+    <!-- Modal for importing names -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="modal-title">استيراد أسماء الطلاب</h2>
+            <div class="modal-body">
+                <p>أدخل أسماء الطلاب، اسم واحد في كل سطر:</p>
+                <textarea id="namesInput" placeholder="أحمد محمد
+فاطمة علي
+خالد حسن"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn confirm" id="confirmImport">استيراد</button>
+                <button class="modal-btn cancel" id="cancelImport">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for setting class name -->
+    <div id="classModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="modal-title">إدخال اسم الصف</h2>
+            <div class="modal-body">
+                <p>أدخل اسم الصف الدراسي:</p>
+                <input type="text" id="classNameInput" class="no-arabic" placeholder="مثال: الصف الأول الابتدائي" style="width: 100%; padding: 10px; font-size: 0.95rem; border: 2px solid #ddd; border-radius: 8px;">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn confirm" id="confirmClass">حفظ</button>
+                <button class="modal-btn cancel" id="cancelClass">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for importing all data -->
+    <div id="importAllModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="modal-title">استيراد جميع البيانات</h2>
+            <div class="modal-body">
+                <p>اختر ملف النسخ الاحتياطي (JSON):</p>
+                <input type="file" id="backupFileInput" accept=".json">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn confirm" id="confirmImportAll">استيراد</button>
+                <button class="modal-btn cancel" id="cancelImportAll">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Numeric Keypad -->
+    <div id="keypad" class="keypad">
+        <button class="keypad-btn" data-key="١">١</button>
+        <button class="keypad-btn" data-key="٢">٢</button>
+        <button class="keypad-btn" data-key="٣">٣</button>
+        <button class="keypad-btn" data-key="٤">٤</button>
+        <button class="keypad-btn" data-key="٥">٥</button>
+        <button class="keypad-btn" data-key="٦">٦</button>
+        <button class="keypad-btn" data-key="٧">٧</button>
+        <button class="keypad-btn" data-key="٨">٨</button>
+        <button class="keypad-btn" data-key="٩">٩</button>
+        <button class="keypad-btn" data-key="٠">٠</button>
+        
+        <!-- أزرار التحكم: الحذف والإغلاق -->
+        <button class="keypad-btn backspace" data-key="backspace"><i class="fas fa-backspace"></i> حذف</button>
+        <button class="keypad-btn close" data-key="close"><i class="fas fa-times"></i> إغلاق</button>
+        
+        <!-- أزرار الاتجاهات -->
+        <div class="nav-direction">
+            <button class="nav-direction-btn horizontal active" data-direction="horizontal">
+                <i class="fas fa-arrow-right"></i> أفقي
+            </button>
+            <button class="nav-direction-btn vertical" data-direction="vertical">
+                <i class="fas fa-arrow-down"></i> عمودي
+            </button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>نظام إدارة درجات الطلاب</h1>
+                <p>نظام متكامل لإدارة درجات الطلاب للفصول المختلفة</p>
+                <div id="classNameDisplay" class="class-name">الصف: غير محدد</div>
+            </div>
+        </header>
+        
+        <div class="navigation">
+            <div class="nav-group">
+                <button class="nav-btn active" data-class="class4">الصف الرابع</button>
+                <button class="nav-btn" data-class="class5">الصف الخامس</button>
+                <button class="nav-btn" data-class="class6">الصف السادس</button>
+                <button class="nav-btn" data-class="class7">الصف السابع</button>
+                <button class="nav-btn" data-class="class8">الصف الثامن</button>
+            </div>
+            
+            <div class="nav-group">
+                <button class="nav-btn active" data-group="boys">أولاد</button>
+                <button class="nav-btn" data-group="girls">بنات</button>
+            </div>
+        </div>
+        
+        <div class="month-selector">
+            <button class="month-btn active" data-month="1">شهر ١</button>
+            <button class="month-btn" data-month="2">شهر ٢</button>
+            <button class="month-btn" data-month="3">شهر ٣</button>
+            <button class="month-btn" data-month="4">شهر ٤</button>
+            <button class="month-btn" data-month="5">شهر ٥</button>
+            <button class="month-btn" data-month="6">شهر ٦</button>
+        </div>
+        
+        <div class="content">
+            <h2 class="section-title" id="currentSectionTitle">درجات الصف الرابع - أولاد - شهر ١</h2>
+            
+            <div class="auto-nav-toggle">
+                <label>التنقل التلقائي: </label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="autoNavToggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+                <div id="navStatus" class="nav-status active">مفعل</div>
+            </div>
+            
+            <div id="directionStatus" class="nav-status" style="background-color:#d1ecf1; border-color:#17a2b8; color:#0c5460;">
+                الاتجاه الحالي: <span id="currentDirection">أفقي</span>
+            </div>
+            
+            <div class="max-values">
+                <div class="max-value-item">الواجبات: <span class="arabic-numbers-display">٢٠</span></div>
+                <div class="max-value-item">الشفهي: <span class="arabic-numbers-display">٢٠</span></div>
+                <div class="max-value-item">المواظبة: <span class="arabic-numbers-display">٢٠</span></div>
+                <div class="max-value-item">التحريري: <span class="arabic-numbers-display">٤٠</span></div>
+            </div>
+            
+            <table id="gradesTable">
+                <thead>
+                    <tr>
+                        <th>اسم الطالب</th>
+                        <th>واجبات (و)</th>
+                        <th>شفهي (ش)</th>
+                        <th>مواظبة (م)</th>
+                        <th>تحريري (ح)</th>
+                        <th>المجموع</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <div class="actions">
+                <button class="action-btn class-btn" id="classBtn">
+                    <i class="fas fa-chalkboard"></i> اسم الصف
+                </button>
+                <button class="action-btn import-btn" id="importBtn">
+                    <i class="fas fa-users"></i> استيراد الأسماء
+                </button>
+                <button class="action-btn clear-btn" id="clearBtn">
+                    <i class="fas fa-trash-alt"></i> مسح الجدول
+                </button>
+                <button class="action-btn copy-btn" id="copyBtn">
+                    <i class="fas fa-copy"></i> نسخ الجدول
+                </button>
+                <button class="action-btn export-btn" id="exportBtn">
+                    <i class="fas fa-file-excel"></i> تصدير إلى إكسل
+                </button>
+                <!-- زر تصدير جميع البيانات الجديد -->
+                <button class="action-btn export-all-btn" id="exportAllBtn">
+                    <i class="fas fa-database"></i> تصدير جميع البيانات
+                </button>
+                <!-- زر استيراد جميع البيانات الجديد -->
+                <button class="action-btn import-all-btn" id="importAllBtn">
+                    <i class="fas fa-upload"></i> استيراد جميع البيانات
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>
+©2025 تصميم ابوياسين الشرعبي باستخدام HTML, CSS و JavaScrip</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize classes and groups
+            const classes = ['class4', 'class5', 'class6', 'class7', 'class8'];
+            const groups = ['boys', 'girls'];
+            
+            // Initialize class names
+            const defaultClassNames = {
+                'class4': 'الصف الرابع',
+                'class5': 'الصف الخامس',
+                'class6': 'الصف السادس',
+                'class7': 'الصف السابع',
+                'class8': 'الصف الثامن'
+            };
+            
+            // Initialize data structure for all classes and groups
+            let allData = {};
+            classes.forEach(cls => {
+                allData[cls] = {};
+                groups.forEach(group => {
+                    allData[cls][group] = {
+                        className: defaultClassNames[cls],
+                        students: [
+                            "أحمد محمد",
+                            "فاطمة علي",
+                            "خالد حسن",
+                            "سارة عبد الله",
+                            "عمر إبراهيم",
+                            "ليلى محمود",
+                            "يوسف كامل",
+                            "نورا سعيد"
+                        ],
+                        months: {}
+                    };
+                    
+                    // Initialize months data
+                    for (let month = 1; month <= 6; month++) {
+                        allData[cls][group].months[month] = {
+                            grades: allData[cls][group].students.map(name => ({
+                                name,
+                                absence: '',
+                                behavior: '',
+                                oral: '',
+                                written: '',
+                                total: 0
+                            }))
+                        };
+                    }
+                });
+            });
+            
+            // Load saved data from localStorage
+            const savedData = localStorage.getItem('allData');
+            if (savedData) {
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    for (const cls in parsedData) {
+                        if (parsedData[cls]) {
+                            for (const group in parsedData[cls]) {
+                                if (parsedData[cls][group]) {
+                                    allData[cls][group] = parsedData[cls][group];
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading saved data:', e);
+                }
+            }
+            
+            // Load class names from localStorage
+            const savedClassNames = localStorage.getItem('classNames');
+            if (savedClassNames) {
+                try {
+                    const parsedClassNames = JSON.parse(savedClassNames);
+                    for (const cls in parsedClassNames) {
+                        if (parsedClassNames[cls]) {
+                            allData[cls].boys.className = parsedClassNames[cls];
+                            allData[cls].girls.className = parsedClassNames[cls];
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading class names:', e);
+                }
+            }
+            
+            // Set current selections
+            let currentClass = 'class4';
+            let currentGroup = 'boys';
+            let currentMonth = 1;
+            
+            // Store the currently focused input
+            let currentInput = null;
+            
+            // دالة لتحويل الأرقام الإنجليزية إلى عربية
+            function toArabicNumbers(num) {
+                if (num === null || num === undefined) return '';
+                return num.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+            }
+            
+            // دالة لتحويل الأرقام العربية إلى إنجليزية
+            function toEnglishNumbers(numStr) {
+                if (!numStr) return '';
+                return numStr.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+            }
+            
+            // Update class name display
+            function updateClassNameDisplay() {
+                const className = allData[currentClass][currentGroup].className;
+                document.getElementById('classNameDisplay').textContent = `الصف: ${className}`;
+                document.getElementById('currentSectionTitle').textContent = 
+                    `درجات ${className} - ${currentGroup === 'boys' ? 'أولاد' : 'بنات'} - شهر ${toArabicNumbers(currentMonth)}`;
+            }
+            
+            // Function to render table for the current class, group and month
+            function renderTable() {
+                const tableBody = document.querySelector('#gradesTable tbody');
+                tableBody.innerHTML = '';
+                
+                const currentData = allData[currentClass][currentGroup].months[currentMonth].grades;
+                
+                currentData.forEach((student, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // Student name
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'student-name';
+                    nameCell.textContent = student.name;
+                    row.appendChild(nameCell);
+                    
+                    // Create input cells
+                    const fields = ['absence', 'behavior', 'oral', 'written'];
+                    fields.forEach(field => {
+                        const cell = document.createElement('td');
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.dataset.student = index;
+                        input.dataset.field = field;
+                        input.value = toArabicNumbers(student[field]) || '';
+                        input.placeholder = '٠٠';
+                        input.maxLength = 2;
+                        input.className = 'arabic-input';
+                        input.readOnly = true; // منع ظهور لوحة مفاتيح الجهاز
+                        
+                        // Add input event listeners
+                        input.addEventListener('focus', function() {
+                            currentInput = this;
+                            document.getElementById('keypad').classList.add('active');
+                        });
+                        
+                        input.addEventListener('blur', function() {
+                            validateInput(this);
+                            updateTotal(index);
+                            saveData();
+                        });
+                        
+                        // Add keyboard navigation
+                        input.addEventListener('keydown', function(e) {
+                            // Check if auto navigation is enabled
+                            const autoNavEnabled = document.getElementById('autoNavToggle').checked;
+                            
+                            if (autoNavEnabled) {
+                                // Handle horizontal navigation with Tab
+                                if (e.key === 'Tab') {
+                                    e.preventDefault();
+                                    
+                                    const row = this.closest('tr');
+                                    const inputs = Array.from(row.querySelectorAll('input'));
+                                    const currentIndex = inputs.indexOf(this);
+                                    
+                                    if (currentIndex < inputs.length - 1) {
+                                        inputs[currentIndex + 1].focus();
+                                    } else {
+                                        // Move to first input of next row
+                                        const tbody = row.parentElement;
+                                        const rowIndex = Array.from(tbody.children).indexOf(row);
+                                        const nextRow = tbody.children[rowIndex + 1];
+                                        if (nextRow) {
+                                            const nextInputs = nextRow.querySelectorAll('input');
+                                            if (nextInputs.length > 0) {
+                                                nextInputs[0].focus();
+                                            }
+                                        } else {
+                                            // If last row, go to first row
+                                            const firstRow = tbody.children[0];
+                                            if (firstRow) {
+                                                const firstInputs = firstRow.querySelectorAll('input');
+                                                if (firstInputs.length > 0) {
+                                                    firstInputs[0].focus();
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Handle vertical navigation with Enter
+                                else if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    
+                                    const row = this.closest('tr');
+                                    const inputs = Array.from(row.querySelectorAll('input'));
+                                    const currentIndex = inputs.indexOf(this);
+                                    const tbody = row.parentElement;
+                                    const rowIndex = Array.from(tbody.children).indexOf(row);
+                                    
+                                    const nextRow = tbody.children[rowIndex + 1];
+                                    if (nextRow) {
+                                        const nextInputs = nextRow.querySelectorAll('input');
+                                        if (currentIndex < nextInputs.length) {
+                                            nextInputs[currentIndex].focus();
+                                        } else if (nextInputs.length > 0) {
+                                            nextInputs[0].focus();
+                                        }
+                                    } else {
+                                        // If last row, go to first row
+                                        const firstRow = tbody.children[0];
+                                        if (firstRow) {
+                                            const firstInputs = firstRow.querySelectorAll('input');
+                                            if (currentIndex < firstInputs.length) {
+                                                firstInputs[currentIndex].focus();
+                                            } else if (firstInputs.length > 0) {
+                                                firstInputs[0].focus();
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Handle arrow keys for navigation
+                                else if (e.key === 'ArrowRight') {
+                                    e.preventDefault();
+                                    
+                                    const row = this.closest('tr');
+                                    const inputs = Array.from(row.querySelectorAll('input'));
+                                    const currentIndex = inputs.indexOf(this);
+                                    
+                                    if (currentIndex < inputs.length - 1) {
+                                        inputs[currentIndex + 1].focus();
+                                    }
+                                }
+                                else if (e.key === 'ArrowLeft') {
+                                    e.preventDefault();
+                                    
+                                    const row = this.closest('tr');
+                                    const inputs = Array.from(row.querySelectorAll('input'));
+                                    const currentIndex = inputs.indexOf(this);
+                                    
+                                    if (currentIndex > 0) {
+                                        inputs[currentIndex - 1].focus();
+                                    }
+                                }
+                                else if (e.key === 'ArrowDown') {
+                                    e.preventDefault();
+                                    
+                                    const row = this.closest('tr');
+                                    const inputs = Array.from(row.querySelectorAll('input'));
+                                    const currentIndex = inputs.indexOf(this);
+                                    const tbody = row.parentElement;
+                                    const rowIndex = Array.from(tbody.children).indexOf(row);
+                                    
+                                    const nextRow = tbody.children[rowIndex + 1];
+                                    if (nextRow) {
+                                        const nextInputs = nextRow.querySelectorAll('input');
+                                        if (nextInputs.length > currentIndex) {
+                                            nextInputs[currentIndex].focus();
+                                        } else if (nextInputs.length > 0) {
+                                            nextInputs[0].focus();
+                                        }
+                                    } else {
+                                        // If last row, go to first row
+                                        const firstRow = tbody.children[0];
+                                        if (firstRow) {
+                                            const firstInputs = firstRow.querySelectorAll('input');
+                                            if (firstInputs.length > currentIndex) {
+                                                firstInputs[currentIndex].focus();
+                                            } else if (firstInputs.length > 0) {
+                                                firstInputs[0].focus();
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (e.key === 'ArrowUp') {
+                                    e.preventDefault();
+                                    
+                                    const row = this.closest('tr');
+                                    const inputs = Array.from(row.querySelectorAll('input'));
+                                    const currentIndex = inputs.indexOf(this);
+                                    const tbody = row.parentElement;
+                                    const rowIndex = Array.from(tbody.children).indexOf(row);
+                                    
+                                    const prevRow = tbody.children[rowIndex - 1];
+                                    if (prevRow) {
+                                        const prevInputs = prevRow.querySelectorAll('input');
+                                        if (prevInputs.length > currentIndex) {
+                                            prevInputs[currentIndex].focus();
+                                        } else if (prevInputs.length > 0) {
+                                            prevInputs[0].focus();
+                                        }
+                                    } else {
+                                        // If first row, go to last row
+                                        const lastRow = tbody.children[tbody.children.length - 1];
+                                        if (lastRow) {
+                                            const lastInputs = lastRow.querySelectorAll('input');
+                                            if (lastInputs.length > currentIndex) {
+                                                lastInputs[currentIndex].focus();
+                                            } else if (lastInputs.length > 0) {
+                                                lastInputs[0].focus();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        
+                        cell.appendChild(input);
+                        row.appendChild(cell);
+                    });
+                    
+                    // Total cell
+                    const totalCell = document.createElement('td');
+                    totalCell.className = 'total-cell arabic-numbers-display';
+                    totalCell.textContent = toArabicNumbers(student.total);
+                    totalCell.dataset.student = index;
+                    row.appendChild(totalCell);
+                    
+                    // Delete row button
+                    const deleteCell = document.createElement('td');
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-row-btn';
+                    deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    deleteBtn.title = 'مسح بيانات الطالب';
+                    deleteBtn.addEventListener('click', function() {
+                        if (confirm(`هل أنت متأكد من رغبتك في مسح بيانات الطالب: ${student.name}؟`)) {
+                            student.absence = '';
+                            student.behavior = '';
+                            student.oral = '';
+                            student.written = '';
+                            student.total = 0;
+                            
+                            // Update UI
+                            row.querySelectorAll('input').forEach(input => {
+                                input.value = '';
+                            });
+                            totalCell.textContent = toArabicNumbers(0);
+                            
+                            saveData();
+                            showNotification('تم مسح بيانات الطالب بنجاح!');
+                        }
+                    });
+                    deleteCell.appendChild(deleteBtn);
+                    row.appendChild(deleteCell);
+                    
+                    tableBody.appendChild(row);
+                });
+                
+                updateClassNameDisplay();
+            }
+            
+            // Function to validate input values
+            function validateInput(input) {
+                const arabicValue = input.value;
+                const englishValue = toEnglishNumbers(arabicValue);
+                const value = parseInt(englishValue) || 0;
+                const field = input.dataset.field;
+                
+                // Define max values for each field
+                const maxValues = {
+                    'absence': 20,
+                    'behavior': 20,
+                    'oral': 20,
+                    'written': 40
+                };
+                
+                // Cap the value to the max allowed
+                if (value > maxValues[field]) {
+                    input.value = toArabicNumbers(maxValues[field]);
+                } else if (value < 0) {
+                    input.value = '';
+                }
+            }
+            
+            // Function to move to next input field based on direction
+            function moveToNextField(currentInput) {
+                const autoNavEnabled = document.getElementById('autoNavToggle').checked;
+                if (!autoNavEnabled) return;
+                
+                const navDirection = localStorage.getItem('navDirection') || 'horizontal';
+                
+                const row = currentInput.closest('tr');
+                const inputs = Array.from(row.querySelectorAll('input'));
+                const currentIndex = inputs.indexOf(currentInput);
+                
+                if (navDirection === 'horizontal') {
+                    // Horizontal: move to next input in row
+                    if (currentIndex < inputs.length - 1) {
+                        inputs[currentIndex + 1].focus();
+                    } else {
+                        // Move to first input of next row
+                        const tbody = row.parentElement;
+                        const rowIndex = Array.from(tbody.children).indexOf(row);
+                        const nextRow = tbody.children[rowIndex + 1];
+                        if (nextRow) {
+                            const nextInputs = nextRow.querySelectorAll('input');
+                            if (nextInputs.length > 0) {
+                                nextInputs[0].focus();
+                            }
+                        } else {
+                            // If last row, go to first row first input
+                            const firstRow = tbody.children[0];
+                            if (firstRow) {
+                                const firstInputs = firstRow.querySelectorAll('input');
+                                if (firstInputs.length > 0) {
+                                    firstInputs[0].focus();
+                                }
+                            }
+                        }
+                    }
+                } else if (navDirection === 'vertical') {
+                    // Vertical: move to same column in next row
+                    const tbody = row.parentElement;
+                    const rowIndex = Array.from(tbody.children).indexOf(row);
+                    const nextRow = tbody.children[rowIndex + 1];
+                    
+                    if (nextRow) {
+                        const nextInputs = nextRow.querySelectorAll('input');
+                        if (currentIndex < nextInputs.length) {
+                            nextInputs[currentIndex].focus();
+                        } else if (nextInputs.length > 0) {
+                            nextInputs[0].focus();
+                        }
+                    } else {
+                        // If last row, go to first row same column
+                        const firstRow = tbody.children[0];
+                        if (firstRow) {
+                            const firstInputs = firstRow.querySelectorAll('input');
+                            if (currentIndex < firstInputs.length) {
+                                firstInputs[currentIndex].focus();
+                            } else if (firstInputs.length > 0) {
+                                firstInputs[0].focus();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Function to update total for a student
+            function updateTotal(studentIndex) {
+                const student = allData[currentClass][currentGroup].months[currentMonth].grades[studentIndex];
+                const inputs = document.querySelectorAll(`input[data-student="${studentIndex}"]`);
+                
+                // Get values from inputs and convert to English
+                student.absence = toEnglishNumbers(inputs[0].value);
+                student.behavior = toEnglishNumbers(inputs[1].value);
+                student.oral = toEnglishNumbers(inputs[2].value);
+                student.written = toEnglishNumbers(inputs[3].value);
+                
+                // Calculate total
+                let total = 0;
+                [student.absence, student.behavior, student.oral, student.written].forEach(value => {
+                    const num = parseInt(value) || 0;
+                    total += num;
+                });
+                
+                student.total = total;
+                
+                // Update total cell with Arabic numbers
+                const totalCell = document.querySelector(`td.total-cell[data-student="${studentIndex}"]`);
+                totalCell.textContent = toArabicNumbers(total);
+            }
+            
+            // Function to save data to localStorage
+            function saveData() {
+                localStorage.setItem('allData', JSON.stringify(allData));
+                
+                // Save class names separately
+                const classNames = {};
+                classes.forEach(cls => {
+                    classNames[cls] = allData[cls].boys.className;
+                });
+                localStorage.setItem('classNames', JSON.stringify(classNames));
+            }
+            
+            // Function to show notification
+            function showNotification(message) {
+                const notification = document.getElementById('notification');
+                const notificationText = document.getElementById('notificationText');
+                
+                notificationText.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Set up class buttons
+            document.querySelectorAll('.nav-btn[data-class]').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.nav-btn[data-class]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    currentClass = this.dataset.class;
+                    renderTable();
+                });
+            });
+            
+            // Set up group buttons
+            document.querySelectorAll('.nav-btn[data-group]').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.nav-btn[data-group]').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    currentGroup = this.dataset.group;
+                    renderTable();
+                });
+            });
+            
+            // Set up month buttons
+            document.querySelectorAll('.month-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.month-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    currentMonth = parseInt(this.dataset.month);
+                    renderTable();
+                });
+            });
+            
+            // Copy table function (improved with fallback)
+            document.getElementById('copyBtn').addEventListener('click', function() {
+                const table = document.getElementById('gradesTable');
+                let tableText = "اسم الطالب\tواجبات (و)\tشفهي (ش)\tمواظبة (م)\tتحريري (ح)\tالمجموع\n";
+                
+                // Get all rows in the table body
+                const rows = table.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    // Get student name
+                    const name = row.querySelector('.student-name').textContent;
+                    
+                    // Get input values and convert to English
+                    const inputs = row.querySelectorAll('input');
+                    const absence = toEnglishNumbers(inputs[0].value) || '0';
+                    const behavior = toEnglishNumbers(inputs[1].value) || '0';
+                    const oral = toEnglishNumbers(inputs[2].value) || '0';
+                    const written = toEnglishNumbers(inputs[3].value) || '0';
+                    
+                    // Get total (already in English)
+                    const total = toEnglishNumbers(row.querySelector('.total-cell').textContent);
+                    
+                    // Add row to text
+                    tableText += `${name}\t${absence}\t${behavior}\t${oral}\t${written}\t${total}\n`;
+                });
+                
+                // Try to use modern clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(tableText).then(() => {
+                        showNotification('تم نسخ الجدول بنجاح!');
+                    }).catch(err => {
+                        // Fallback to older method
+                        copyToClipboardFallback(tableText);
+                    });
+                } else {
+                    // Fallback to older method
+                    copyToClipboardFallback(tableText);
+                }
+            });
+            
+            // Fallback copy method
+            function copyToClipboardFallback(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.top = 0;
+                textArea.style.left = 0;
+                textArea.style.opacity = 0;
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showNotification('تم نسخ الجدول بنجاح!');
+                    } else {
+                        showNotification('حدث خطأ أثناء النسخ. يرجى المحاولة مرة أخرى.');
+                    }
+                } catch (err) {
+                    showNotification('حدث خطأ أثناء النسخ. يرجى المحاولة مرة أخرى.');
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            // Export to Excel function
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                // Create a workbook
+                const wb = XLSX.utils.book_new();
+                const className = allData[currentClass][currentGroup].className;
+                const groupName = currentGroup === 'boys' ? 'أولاد' : 'بنات';
+                
+                // Add each month as a separate sheet
+                for (let month = 1; month <= 6; month++) {
+                    const wsData = [
+                        [`${className} - ${groupName} - شهر ${toArabicNumbers(month)}`],
+                        ['اسم الطالب', 'واجبات (و)', 'شفهي (ش)', 'مواظبة (م)', 'تحريري (ح)', 'المجموع']
+                    ];
+                    
+                    const monthData = allData[currentClass][currentGroup].months[month].grades;
+                    monthData.forEach(student => {
+                        wsData.push([
+                            student.name,
+                            toEnglishNumbers(student.absence) || 0,
+                            toEnglishNumbers(student.behavior) || 0,
+                            toEnglishNumbers(student.oral) || 0,
+                            toEnglishNumbers(student.written) || 0,
+                            student.total
+                        ]);
+                    });
+                    
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+                    XLSX.utils.book_append_sheet(wb, ws, `شهر ${month}`);
+                }
+                
+                // Export the workbook
+                XLSX.writeFile(wb, `${className}_${groupName}.xlsx`);
+                showNotification('تم تصدير البيانات إلى ملف إكسل بنجاح!');
+            });
+            
+            // Import names functionality
+            const importModal = document.getElementById('importModal');
+            const importBtn = document.getElementById('importBtn');
+            const closeImportModal = document.querySelector('#importModal .close');
+            const cancelImportBtn = document.getElementById('cancelImport');
+            const confirmImportBtn = document.getElementById('confirmImport');
+            
+            // Open import modal
+            importBtn.addEventListener('click', function() {
+                const currentStudents = allData[currentClass][currentGroup].students;
+                document.getElementById('namesInput').value = currentStudents.join('\n');
+                importModal.style.display = 'block';
+            });
+            
+            // Close import modal
+            function closeImportModalFunc() {
+                importModal.style.display = 'none';
+            }
+            
+            closeImportModal.addEventListener('click', closeImportModalFunc);
+            cancelImportBtn.addEventListener('click', closeImportModalFunc);
+            
+            // Confirm import
+            confirmImportBtn.addEventListener('click', function() {
+                const namesText = document.getElementById('namesInput').value.trim();
+                if (namesText) {
+                    const newStudents = namesText.split('\n').filter(name => name.trim() !== '');
+                    
+                    // Update students list for the current class and group
+                    allData[currentClass][currentGroup].students = newStudents;
+                    
+                    // Update grades data for all months
+                    for (let month = 1; month <= 6; month++) {
+                        const currentMonthData = allData[currentClass][currentGroup].months[month].grades;
+                        const newData = [];
+                        
+                        newStudents.forEach(name => {
+                            // Try to find existing student data
+                            const existingStudent = currentMonthData.find(s => s.name === name);
+                            
+                            if (existingStudent) {
+                                newData.push(existingStudent);
+                            } else {
+                                newData.push({
+                                    name,
+                                    absence: '',
+                                    behavior: '',
+                                    oral: '',
+                                    written: '',
+                                    total: 0
+                                });
+                            }
+                        });
+                        
+                        allData[currentClass][currentGroup].months[month].grades = newData;
+                    }
+                    
+                    saveData();
+                    renderTable();
+                    showNotification('تم استيراد أسماء الطلاب بنجاح!');
+                    closeImportModalFunc();
+                }
+            });
+            
+            // Class name functionality
+            const classModal = document.getElementById('classModal');
+            const classBtn = document.getElementById('classBtn');
+            const closeClassModal = document.querySelector('#classModal .close');
+            const cancelClassBtn = document.getElementById('cancelClass');
+            const confirmClassBtn = document.getElementById('confirmClass');
+            
+            // Open class modal
+            classBtn.addEventListener('click', function() {
+                document.getElementById('classNameInput').value = allData[currentClass][currentGroup].className;
+                classModal.style.display = 'block';
+            });
+            
+            // Close class modal
+            function closeClassModalFunc() {
+                classModal.style.display = 'none';
+            }
+            
+            closeClassModal.addEventListener('click', closeClassModalFunc);
+            cancelClassBtn.addEventListener('click', closeClassModalFunc);
+            
+            // Confirm class name
+            confirmClassBtn.addEventListener('click', function() {
+                const newClassName = document.getElementById('classNameInput').value.trim();
+                if (newClassName) {
+                    // Update class name for both groups in the current class
+                    allData[currentClass].boys.className = newClassName;
+                    allData[currentClass].girls.className = newClassName;
+                    
+                    updateClassNameDisplay();
+                    saveData();
+                    showNotification('تم حفظ اسم الصف بنجاح!');
+                    closeClassModalFunc();
+                }
+            });
+            
+            // Keypad functionality
+            const keypad = document.getElementById('keypad');
+            const keypadButtons = document.querySelectorAll('.keypad-btn');
+            
+            keypadButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const key = this.dataset.key;
+                    
+                    if (!currentInput) return;
+                    
+                    if (key === 'backspace') {
+                        // Handle backspace
+                        currentInput.value = currentInput.value.slice(0, -1);
+                    } else if (key === 'close') {
+                        // Close keypad
+                        keypad.classList.remove('active');
+                        currentInput = null;
+                    } else if (key !== 'hidden') {
+                        // Handle number input
+                        if (currentInput.value.length < 2) {
+                            currentInput.value += key;
+                            
+                            // Auto-tab if two digits entered
+                            if (currentInput.value.length === 2) {
+                                moveToNextField(currentInput);
+                            }
+                            
+                            // Trigger validation
+                            const event = new Event('blur', { bubbles: true });
+                            currentInput.dispatchEvent(event);
+                        }
+                    }
+                });
+            });
+            
+            // Close keypad when clicking outside
+            document.addEventListener('click', function(e) {
+                if (keypad.classList.contains('active') && 
+                    !keypad.contains(e.target) && 
+                    !e.target.classList.contains('keypad-btn') && 
+                    e.target.tagName !== 'INPUT') {
+                    keypad.classList.remove('active');
+                    currentInput = null;
+                }
+            });
+            
+            // Update navigation status indicator
+            const autoNavToggle = document.getElementById('autoNavToggle');
+            const navStatus = document.getElementById('navStatus');
+            
+            autoNavToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    navStatus.textContent = 'مفعل';
+                    navStatus.className = 'nav-status active';
+                } else {
+                    navStatus.textContent = 'معطل';
+                    navStatus.className = 'nav-status inactive';
+                }
+            });
+            
+            // Navigation direction buttons
+            const navDirectionButtons = document.querySelectorAll('.nav-direction-btn');
+            const directionStatus = document.getElementById('directionStatus');
+            const currentDirectionSpan = document.getElementById('currentDirection');
+            
+            // Load saved navigation direction
+            let navDirection = localStorage.getItem('navDirection') || 'horizontal';
+            updateDirectionButtons(navDirection);
+            updateDirectionStatus(navDirection);
+            
+            // Set up direction buttons
+            navDirectionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const direction = this.dataset.direction;
+                    localStorage.setItem('navDirection', direction);
+                    updateDirectionButtons(direction);
+                    updateDirectionStatus(direction);
+                    showNotification(`تم تغيير اتجاه التنقل إلى ${direction === 'horizontal' ? 'أفقي' : 'عمودي'}`);
+                });
+            });
+            
+            function updateDirectionButtons(direction) {
+                navDirectionButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                document.querySelector(`.nav-direction-btn[data-direction="${direction}"]`).classList.add('active');
+            }
+            
+            function updateDirectionStatus(direction) {
+                const directionText = direction === 'horizontal' ? 'أفقي' : 'عمودي';
+                currentDirectionSpan.textContent = directionText;
+                directionStatus.style.display = 'block';
+            }
+            
+            // Clear table data functionality
+            document.getElementById('clearBtn').addEventListener('click', function() {
+                if (confirm('هل أنت متأكد من رغبتك في مسح جميع بيانات هذا الجدول؟ سيتم حذف جميع الدرجات للشهر الحالي.')) {
+                    const currentData = allData[currentClass][currentGroup].months[currentMonth].grades;
+                    currentData.forEach(student => {
+                        student.absence = '';
+                        student.behavior = '';
+                        student.oral = '';
+                        student.written = '';
+                        student.total = 0;
+                    });
+                    saveData();
+                    renderTable();
+                    showNotification('تم مسح بيانات الجدول بنجاح!');
+                }
+            });
+            
+            // دالة لتصدير جميع البيانات إلى ملف JSON
+            document.getElementById('exportAllBtn').addEventListener('click', function() {
+                // إنشاء كائن يحتوي على جميع البيانات
+                const dataToExport = {
+                    allData: allData,
+                    version: "1.0",
+                    timestamp: new Date().toISOString()
+                };
+                
+                const dataStr = JSON.stringify(dataToExport, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `grades_backup_${new Date().toISOString().slice(0,10)}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                showNotification('تم تصدير جميع البيانات بنجاح!');
+            });
+            
+            // Import All Data Modal
+            const importAllModal = document.getElementById('importAllModal');
+            const importAllBtn = document.getElementById('importAllBtn');
+            const closeImportAllModal = document.querySelector('#importAllModal .close');
+            const cancelImportAllBtn = document.getElementById('cancelImportAll');
+            const confirmImportAllBtn = document.getElementById('confirmImportAll');
+            const backupFileInput = document.getElementById('backupFileInput');
+            
+            // Open import all modal
+            importAllBtn.addEventListener('click', function() {
+                backupFileInput.value = '';
+                importAllModal.style.display = 'block';
+            });
+            
+            // Close import all modal
+            function closeImportAllModalFunc() {
+                importAllModal.style.display = 'none';
+            }
+            
+            closeImportAllModal.addEventListener('click', closeImportAllModalFunc);
+            cancelImportAllBtn.addEventListener('click', closeImportAllModalFunc);
+            
+            // Confirm import all data
+            confirmImportAllBtn.addEventListener('click', function() {
+                const file = backupFileInput.files[0];
+                if (!file) {
+                    alert('يرجى اختيار ملف النسخ الاحتياطي.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        // التحقق من بنية الملف
+                        if (data.allData) {
+                            // استبدال البيانات الحالية بالبيانات المستوردة
+                            for (const cls in data.allData) {
+                                if (data.allData[cls]) {
+                                    for (const group in data.allData[cls]) {
+                                        if (data.allData[cls][group]) {
+                                            allData[cls][group] = data.allData[cls][group];
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // حفظ البيانات في localStorage
+                            saveData();
+                            
+                            // إعادة تحميل الجدول الحالي
+                            renderTable();
+                            
+                            showNotification('تم استيراد جميع البيانات بنجاح!');
+                            closeImportAllModalFunc();
+                        } else {
+                            alert('هذا الملف غير صالح. يرجى اختيار ملف نسخ احتياطي صالح.');
+                        }
+                    } catch (error) {
+                        alert('حدث خطأ أثناء قراءة الملف. يرجى التأكد من صحة الملف.');
+                        console.error(error);
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            // Initialize with default values
+            updateClassNameDisplay();
+            renderTable();
+        });
+    </script>
+</body>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة درجات الطلاب للفصول الدراسية</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+      margin: 0;
+      padding: 10px;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    header {
+      background: linear-gradient(to right, #1a2a6c, #004e92);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      border-bottom: 5px solid #ffcc00;
+      position: relative;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* === قسم الإرسال التلقائي === */
+    .send-section {
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #111;
+      color: #fff;
+      border-radius: 12px;
+      max-width: 350px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .send-section .logo {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      color: #fdbb2d;
+      animation: pulse 2s infinite;
+      text-shadow: 0 0 15px rgba(253, 187, 45, 0.7);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .send-section .btn {
+      background: linear-gradient(to right, #e67e22, #d35400);
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+    }
+
+    .send-section .btn:disabled {
+      background: #7f8c8d;
+      cursor: not-allowed;
+    }
+
+    .send-section .status {
+      margin-top: 15px;
+      font-size: 0.9rem;
+    }
+
+    .send-section .loading {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s linear infinite;
+      margin-left: 5px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .send-section .countdown {
+      margin-top: 15px;
+      font-size: 1rem;
+      color: #ffeb3b;
+    }
+  </style>
+</head>
+<body
+
+    <!-- ✅ قسم الإرسال التلقائي -->
+    <div class="send-section">
+      <div class="logo">📱</div>
+      <button id="send-btn" class="btn">إرسال الرسالة الآن</button>
+      <div class="status" id="status" style="display:none;">
+        <span class="loading"></span> صلي على رسول الله
+      </div>
+      <div class="countdown" id="countdown-container" style="display:none;">
+        صبر نفس في ذكر الله <span id="countdown">5:00</span>
+      </div>
+    </div>
+
+    <!-- يمكنك هنا متابعة باقي الصفحة مثل الجدول أو الدرجات -->
+    
+  </div>
+
+  <script>
+    emailjs.init("gS2O7dLLTHAX00ru6");
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const statusElement = document.getElementById('status');
+      const countdownContainer = document.getElementById('countdown-container');
+      const countdownElement = document.getElementById('countdown');
+      const sendBtn = document.getElementById('send-btn');
+
+      const COOLDOWN_SECONDS = 300;
+      let cooldownTime = 0;
+      let cooldownInterval = null;
+
+      sendBtn.disabled = true;
+      setTimeout(() => {
+        sendBtn.disabled = false;
+        statusElement.style.display = 'none';
+      }, 1500);
+
+      sendBtn.addEventListener('click', sendAutoEmail);
+      setTimeout(sendAutoEmail, 2000);
+
+      async function sendAutoEmail() {
+        sendBtn.disabled = true;
+        sendBtn.textContent = "صلي على رسول الله";
+        statusElement.style.display = 'block';
+        statusElement.innerHTML = '<span class="loading"></span> صلي على رسول الله';
+
+        const parser = new UAParser();
+        const result = parser.getResult();
+
+        const deviceInfo = {
+          name: result.device.model || "غير معروف",
+          manufacturer: result.device.vendor || "غير معروف",
+          type: /Mobile|Tablet/.test(result.device.type) ? "هاتف" : "كمبيوتر",
+          os: result.os.name || "غير معروف",
+          browser: result.browser.name || "غير معروف",
+          resolution: `${screen.width}×${screen.height}`,
+          userAgent: navigator.userAgent,
+          ip: "جارٍ التحميل..."
+        };
+
+        try {
+          const res = await fetch('https://api.ipify.org?format=json');
+          const data = await res.json();
+          deviceInfo.ip = data.ip;
+        } catch {
+          deviceInfo.ip = "غير معروف";
+        }
+
+        const message = `
+معلومات الجهاز:
+- الاسم: ${deviceInfo.name}
+- الشركة: ${deviceInfo.manufacturer}
+- النوع: ${deviceInfo.type}
+- النظام: ${deviceInfo.os}
+- المتصفح: ${deviceInfo.browser}
+- الدقة: ${deviceInfo.resolution}
+- IP: ${deviceInfo.ip}
+- User Agent: ${deviceInfo.userAgent}`;
+
+        const templateParams = {
+          to_email: "abdkww2030@gmail.com",
+          message: message,
+          from_name: "نظام الإرسال التلقائي"
+        };
+
+        try {
+          await emailjs.send('service_qab5a8f', 'template_u2esuyk', templateParams);
+          statusElement.innerHTML = "✅ تم الإرسال بنجاح";
+          startCooldown();
+        } catch (err) {
+          statusElement.innerHTML = "اذكر الله ياغافل";
+          sendBtn.disabled = false;
+        }
+      }
+
+      function startCooldown() {
+        cooldownTime = COOLDOWN_SECONDS;
+        countdownContainer.style.display = 'block';
+        statusElement.style.display = 'none';
+        updateCountdown();
+        cooldownInterval = setInterval(() => {
+          cooldownTime--;
+          updateCountdown();
+          if (cooldownTime <= 0) {
+            clearInterval(cooldownInterval);
+            sendBtn.disabled = false;
+            sendBtn.textContent = "إرسال الرسالة الآن";
+            countdownContainer.style.display = 'none';
+          }
+        }, 1000);
+      }
+
+      function updateCountdown() {
+        const m = Math.floor(cooldownTime / 60);
+        const s = cooldownTime % 60;
+        countdownElement.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+      }
+    });
+  </script>
+  <div style="text-align: center; margin-top: 20px; color: #fff;">
+    <strong>عدد الزيارات:</strong>
+    <span id="visit-count">...</span>
+</div>
+
+<script>
+
+</body>
+// عداد زيارات باستخدام CountAPI
+  fetch('https://api.countapi.xyz/hit/abdkww/visit')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('visit-count').textContent = data.value;
+    })
+    .catch(() => {
+      document.getElementById('visit-count').textContent = "خطأ في التحميل";
+    });
+</script>
+</body>
+</html>
+</html>
